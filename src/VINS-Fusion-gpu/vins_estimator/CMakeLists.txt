@@ -25,6 +25,12 @@ find_package(OpenCV 4 REQUIRED)
 
 find_package(Ceres REQUIRED)
 
+# --- GPU 加速:CUDA 11 把 NPP 拆成了多个库,老版 CMake 的 FindCUDA 未正确链接,
+#     OpenCV CUDA 模块(以 .so 方式依赖 NPP)的符号会在最终链接时报 undefined。
+#     显式补链全部 NPP 库,一次性解决 ---
+link_directories(/usr/local/cuda/lib64)
+set(CUDA_NPP_LIBS nppc nppial nppicc nppidei nppif nppig nppim nppist nppisu nppitc npps)
+
 include_directories(${catkin_INCLUDE_DIRS} ${CERES_INCLUDE_DIRS})
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
@@ -53,7 +59,7 @@ add_library(vins_lib
     src/initial/initial_sfm.cpp
     src/initial/initial_ex_rotation.cpp
     src/featureTracker/feature_tracker.cpp)
-target_link_libraries(vins_lib ${catkin_LIBRARIES} ${OpenCV_LIBS} ${CERES_LIBRARIES})
+target_link_libraries(vins_lib ${catkin_LIBRARIES} ${OpenCV_LIBS} ${CERES_LIBRARIES} ${CUDA_NPP_LIBS})
 
 
 add_executable(vins_node src/rosNodeTest.cpp)
