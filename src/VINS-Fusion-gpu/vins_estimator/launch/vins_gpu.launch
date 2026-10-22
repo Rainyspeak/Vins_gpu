@@ -1,0 +1,11 @@
+<launch>
+	<node name="vins_fusion" pkg="vins"  type="vins_node" output="screen" args="$(find vins)/../config/vins_gpu.yaml"/>
+	<node name="rviz_vins" pkg="rviz"  type="rviz"  output="screen" args="-d $(find vins)/../config/vins_rviz_config.rviz"/>
+	<!-- vins_to_mavros 包当前不在本工作空间,先注释避免 roslaunch 启动失败;
+     需要把 VINS 结果回传飞控时,把该包拷入 src/ 后取消下行注释 -->
+<!-- <include file="$(find vins_to_mavros)/launch/vins_to_mavros.launch"/> -->
+	
+
+	<!-- <node name="loop_fusion" pkg="loop_fusion"  type="loop_fusion_node" args="$(find vins)/../config/fast_drone_250.yaml" output="screen"/> -->
+
+</launch> 
