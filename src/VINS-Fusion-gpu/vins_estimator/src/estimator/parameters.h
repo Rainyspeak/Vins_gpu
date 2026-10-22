@@ -52,11 +52,9 @@ extern int NUM_OF_CAM;
 extern int STEREO;
 extern int USE_IMU;
 extern int MULTIPLE_THREAD;
+// --- GPU 加速开关(配置文件 use_gpu / use_gpu_acc_flow,缺省 0 = 原版 CPU 行为) ---
 extern int USE_GPU;
 extern int USE_GPU_ACC_FLOW;
-extern int PUB_RECTIFY;
-extern Eigen::Matrix3d rectify_R_left;
-extern Eigen::Matrix3d rectify_R_right;
 // pts_gt for debug purpose;
 extern map<int, Eigen::Vector3d> pts_gt;
 

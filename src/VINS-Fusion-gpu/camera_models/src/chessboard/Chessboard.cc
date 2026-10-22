@@ -1917,8 +1917,8 @@ Chessboard::matchCorners(ChessboardQuadPtr& quad1, int corner1,
     float sign62 = a6*d62 - c62*b6;
 
 
-    // Fourth: Then check everything from the viewpoint
-    // of the candidate quad compute midpoints of "parallel"
+    // Fourth: Then check everything from the viewpoint of
+    // the candidate quad compute midpoints of "parallel"
     // quad sides 1
     float u5 = quad2->corners[corner2]->pt.x;
     float v5 = quad2->corners[corner2]->pt.y;

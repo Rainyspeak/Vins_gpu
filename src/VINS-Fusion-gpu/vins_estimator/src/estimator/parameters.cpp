@@ -38,9 +38,6 @@ int USE_IMU;
 int MULTIPLE_THREAD;
 int USE_GPU;
 int USE_GPU_ACC_FLOW;
-int PUB_RECTIFY;
-Eigen::Matrix3d rectify_R_left;
-Eigen::Matrix3d rectify_R_right;
 map<int, Eigen::Vector3d> pts_gt;
 std::string IMAGE0_TOPIC, IMAGE1_TOPIC;
 std::string FISHEYE_MASK;
@@ -92,14 +89,14 @@ void readParameters(std::string config_file)
     SHOW_TRACK = fsSettings["show_track"];
     FLOW_BACK = fsSettings["flow_back"];
 
-    MULTIPLE_THREAD = fsSettings["multiple_thread"];
-
-    // GPU 加速开关;配置缺省时保持 0(纯 CPU 原版行为)
+    // --- GPU 加速:缺省 0(纯 CPU,与原版一致);配置文件加 use_gpu/use_gpu_acc_flow 开启 ---
     USE_GPU = 0;
     USE_GPU_ACC_FLOW = 0;
     fsSettings["use_gpu"] >> USE_GPU;
     fsSettings["use_gpu_acc_flow"] >> USE_GPU_ACC_FLOW;
     printf("USE_GPU: %d, USE_GPU_ACC_FLOW: %d\n", USE_GPU, USE_GPU_ACC_FLOW);
+
+    MULTIPLE_THREAD = fsSettings["multiple_thread"];
 
     USE_IMU = fsSettings["imu"];
     printf("USE_IMU: %d\n", USE_IMU);
@@ -120,10 +117,13 @@ void readParameters(std::string config_file)
     MIN_PARALLAX = MIN_PARALLAX / FOCAL_LENGTH;
 
     fsSettings["output_path"] >> OUTPUT_FOLDER;
-    VINS_RESULT_PATH = OUTPUT_FOLDER + "/vio.csv";
+    VINS_RESULT_PATH = OUTPUT_FOLDER + "/stamped_traj_estimate.txt";
+
     std::cout << "result path " << VINS_RESULT_PATH << std::endl;
-    std::ofstream fout(VINS_RESULT_PATH, std::ios::out);
-    fout.close();
+    std::ofstream foutC(VINS_RESULT_PATH, std::ios::out);
+    if (!foutC || foutC.bad() || foutC.fail())
+        std::cout << "VINS_RESULT_PATH not opened! Check if the path exists." << std::endl;
+    foutC.close();
 
     ESTIMATE_EXTRINSIC = fsSettings["estimate_extrinsic"];
     if (ESTIMATE_EXTRINSIC == 2)
@@ -131,14 +131,14 @@ void readParameters(std::string config_file)
         ROS_WARN("have no prior about extrinsic param, calibrate extrinsic param");
         RIC.push_back(Eigen::Matrix3d::Identity());
         TIC.push_back(Eigen::Vector3d::Zero());
-        EX_CALIB_RESULT_PATH = OUTPUT_FOLDER + "/extrinsic_parameter.csv";
+        EX_CALIB_RESULT_PATH = OUTPUT_FOLDER + "/extrinsic_parameter.txt";
     }
     else 
     {
         if ( ESTIMATE_EXTRINSIC == 1)
         {
             ROS_WARN(" Optimize extrinsic param around initial guess!");
-            EX_CALIB_RESULT_PATH = OUTPUT_FOLDER + "/extrinsic_parameter.csv";
+            EX_CALIB_RESULT_PATH = OUTPUT_FOLDER + "/extrinsic_parameter.txt";
         }
         if (ESTIMATE_EXTRINSIC == 0)
             ROS_WARN(" fix extrinsic param ");
@@ -184,7 +184,6 @@ void readParameters(std::string config_file)
         cv::cv2eigen(cv_T, T);
         RIC.push_back(T.block<3, 3>(0, 0));
         TIC.push_back(T.block<3, 1>(0, 3));
-        fsSettings["publish_rectify"] >> PUB_RECTIFY;
     }
 
     INIT_DEPTH = 5.0;
@@ -207,16 +206,6 @@ void readParameters(std::string config_file)
         ESTIMATE_EXTRINSIC = 0;
         ESTIMATE_TD = 0;
         printf("no imu, fix extrinsic param; no time offset calibration\n");
-    }
-    if(PUB_RECTIFY)
-    {
-        cv::Mat rectify_left;
-        cv::Mat rectify_right;
-        fsSettings["cam0_rectify"] >> rectify_left;
-        fsSettings["cam1_rectify"] >> rectify_right;
-        cv::cv2eigen(rectify_left, rectify_R_left);
-        cv::cv2eigen(rectify_right, rectify_R_right);
-
     }
 
     fsSettings.release();

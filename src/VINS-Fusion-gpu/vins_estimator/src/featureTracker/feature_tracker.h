@@ -18,6 +18,7 @@
 #include <csignal>
 #include <opencv2/opencv.hpp>
 #include <eigen3/Eigen/Dense>
+// --- GPU 加速:OpenCV CUDA 模块(需带 CUDA 编译的 OpenCV4) ---
 #include <opencv2/cudaoptflow.hpp>
 #include <opencv2/cudaimgproc.hpp>
 #include <opencv2/cudaarithm.hpp>
@@ -42,7 +43,6 @@ public:
     FeatureTracker();
     map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>> trackImage(double _cur_time, const cv::Mat &_img, const cv::Mat &_img1 = cv::Mat());
     void setMask();
-    void addPoints();
     void readIntrinsicParameter(const vector<string> &calib_file);
     void showUndistortion(const string &name);
     void rejectWithF();
@@ -69,7 +69,6 @@ public:
     cv::Mat fisheye_mask;
     cv::Mat prev_img, cur_img;
     vector<cv::Point2f> n_pts;
-    int sum_n;
     vector<cv::Point2f> predict_pts;
     vector<cv::Point2f> predict_pts_debug;
     vector<cv::Point2f> prev_pts, cur_pts, cur_right_pts;
@@ -87,7 +86,7 @@ public:
     int n_id;
     bool hasPrediction;
 
-    // --- GPU 优化:跨帧复用的显存缓冲与算法对象(避免每帧创建/销毁、重复上传) ---
+    // --- GPU 加速:跨帧复用的显存缓冲与算法对象(避免每帧创建/销毁、重复上传) ---
     cv::cuda::GpuMat prev_gpu_img, cur_gpu_img, right_gpu_img, gpu_mask;
     cv::Ptr<cv::cuda::SparsePyrLKOpticalFlow> lk_init_flow; // 单层金字塔+初始流(预测跟踪/反向检查)
     cv::Ptr<cv::cuda::SparsePyrLKOpticalFlow> lk_full_flow; // 三层金字塔(常规跟踪/双目匹配)
