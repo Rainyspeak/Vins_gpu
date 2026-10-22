@@ -1,4 +1,3 @@
 {
-    "ros.distro": "noetic",
-    "cmake.sourceDirectory": "/home/rainy/Vins/Vins-gpu/src/vins_to_mavros"
+    "ros.distro": "noetic"
 }
