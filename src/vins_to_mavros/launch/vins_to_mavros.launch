@@ -1,0 +1,5 @@
+<launch>
+
+  <node name="vins_to_mavros" pkg="vins_to_mavros" type="vins_to_mavros" output="screen"/>
+
+</launch>
